@@ -46,12 +46,12 @@ const Portfolio = () => {
 
   /**
    * Group investments by asset status.
-   * - Active: funding or raising (investment still in progress)
+   * - Active: open or funded (investment still in progress)
    * - Completed: sold (got payout)
    * - Lost: deceased (lost investment)
    */
   const activeInvestments = enrichedInvestments.filter(
-    ({ asset }) => asset!.status === 'funding' || asset!.status === 'raising'
+    ({ asset }) => asset!.status === 'open' || asset!.status === 'funded'
   );
   const completedInvestments = enrichedInvestments.filter(
     ({ asset }) => asset!.status === 'sold'
@@ -253,8 +253,8 @@ function InvestmentCard({ investment, asset }: InvestmentCardProps) {
     : null;
 
   const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-    funding: { label: 'Funding', variant: 'default' },
-    raising: { label: 'Raising', variant: 'secondary' },
+    open: { label: 'Open', variant: 'default' },
+    funded: { label: 'Funded', variant: 'secondary' },
     sold: { label: 'Sold', variant: 'outline' },
     deceased: { label: 'Deceased', variant: 'destructive' },
   };

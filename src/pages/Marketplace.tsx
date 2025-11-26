@@ -15,12 +15,13 @@ import { Asset, AssetStatus } from "@/types";
  * 4. The modal will call buyShares() from context to actually purchase
  */
 
-type FilterOption = 'all' | AssetStatus;
+type FilterOption = 'all' | 'favorites' | AssetStatus;
 
 const filters: { value: FilterOption; label: string }[] = [
   { value: 'all', label: 'All' },
-  { value: 'funding', label: 'Funding' },
-  { value: 'raising', label: 'Raising' },
+  { value: 'favorites', label: 'Favorites' },
+  { value: 'open', label: 'Open' },
+  { value: 'funded', label: 'Funded' },
   { value: 'sold', label: 'Sold' },
   { value: 'deceased', label: 'Deceased' },
 ];
@@ -35,16 +36,17 @@ const Marketplace = () => {
    * useApp() gives us:
    * - state.assets: all assets from our global context
    */
-  const { state } = useApp();
+  const { state, isFavorite } = useApp();
   const [activeFilter, setActiveFilter] = useState<FilterOption>('all');
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [investModalOpen, setInvestModalOpen] = useState(false);
 
   // Filter assets based on selected tab
-  // state.assets comes from context (instead of mockAssets directly)
-  const filteredAssets = activeFilter === 'all'
-    ? state.assets
-    : state.assets.filter((asset) => asset.status === activeFilter);
+  const filteredAssets = (() => {
+    if (activeFilter === 'all') return state.assets;
+    if (activeFilter === 'favorites') return state.assets.filter((asset) => isFavorite(asset.id));
+    return state.assets.filter((asset) => asset.status === activeFilter);
+  })();
 
   const handleInvest = (asset: Asset) => {
     setSelectedAsset(asset);
