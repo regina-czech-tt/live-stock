@@ -35,10 +35,14 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               >
                 Add Investment
               </NavLink>
-              <Button variant="outline" size="sm">
-                Portfolio
-              </Button>
-              <Button size="sm">Connect Wallet</Button>
+              <Link to="/portfolio">
+                <Button variant="outline" size="sm">
+                  Portfolio
+                </Button>
+              </Link>
+              <Link to="/farmer">
+                <Button size="sm">Farmer Dashboard</Button>
+              </Link>
             </nav>
           </div>
         </div>

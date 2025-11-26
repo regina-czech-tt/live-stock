@@ -1,5 +1,5 @@
 import { Layout } from "@/components/Layout";
-import { AddCowForm } from "@/components/AddCowForm";
+import { AddAssetForm } from "@/components/AddAssetForm";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AddCow = () => {
@@ -9,13 +9,13 @@ const AddCow = () => {
         <div className="container mx-auto max-w-4xl">
           <Card>
             <CardHeader>
-              <CardTitle className="text-3xl">Add New Investment</CardTitle>
+              <CardTitle className="text-3xl">List Your Asset</CardTitle>
               <CardDescription>
-                List your livestock for fractional investment. Fill out the details below to create a new investment opportunity.
+                List your livestock for fractional investment. Set your funding goal and let investors buy shares.
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <AddCowForm />
+              <AddAssetForm />
             </CardContent>
           </Card>
         </div>
