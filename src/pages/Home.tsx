@@ -1,11 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Sprout, Users, Milk } from "lucide-react";
+import { Heart, Sprout, Users, Milk, RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 
 const Home = () => {
+  // Temporary reset function for testing
+  const handleReset = () => {
+    if (confirm("This will reset all data to defaults. Are you sure?")) {
+      localStorage.removeItem("cowshares_data");
+      window.location.reload();
+    }
+  };
+
   return (
     <Layout>
       {/* Hero Section */}
@@ -20,8 +28,8 @@ const Home = () => {
             <span className="text-primary">Own One Instead</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Help local dairy farmers thrive by investing in their livestock. 
-            It's time to mooo-ve your money where it matters—supporting the backbone of our dairy industry, 
+            Help local dairy farmers thrive by investing in their livestock.
+            It's time to mooo-ve your money where it matters—supporting the backbone of our dairy industry,
             one cow at a time.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
@@ -79,6 +87,19 @@ const Home = () => {
                 </div>
               </div>
             </Card>
+          </div>
+
+          {/* Temporary Reset Button */}
+          <div className="mt-8 pt-8 border-t border-dashed border-muted-foreground/20">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleReset}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <RotateCcw className="w-3 h-3 mr-2" />
+              Reset Demo Data
+            </Button>
           </div>
         </div>
       </section>

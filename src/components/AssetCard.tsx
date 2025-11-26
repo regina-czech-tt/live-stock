@@ -26,10 +26,11 @@ const statusConfig = {
 
 export const AssetCard = ({ asset, onInvest }: AssetCardProps) => {
   const { toggleFavorite, isFavorite } = useApp();
-  const totalShares = calculateTotalShares(asset);
-  const sharesRemaining = calculateSharesRemaining(asset);
-  const fundingProgress = calculateFundingProgress(asset);
-  const investorOwnership = calculateInvestorOwnership(asset) * 100;
+  // Round to avoid floating point display issues (e.g., 1.30000000007)
+  const totalShares = Math.round(calculateTotalShares(asset));
+  const sharesRemaining = Math.round(calculateSharesRemaining(asset));
+  const fundingProgress = Math.min(calculateFundingProgress(asset), 100); // Cap at 100%
+  const investorOwnership = Math.min(calculateInvestorOwnership(asset) * 100, 100); // Cap at 100%
   const status = statusConfig[asset.status];
   const favorited = isFavorite(asset.id);
 
