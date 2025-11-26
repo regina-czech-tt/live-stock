@@ -7,7 +7,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -17,6 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { ImageUploader } from "@/components/ImageUploader";
 import { Asset } from "@/types";
 import { useApp } from "@/context/AppContext";
 import { toast } from "sonner";
@@ -125,14 +126,12 @@ export function EditAssetModal({ asset, open, onClose }: EditAssetModalProps) {
             </Select>
           </div>
 
-          {/* Image URL */}
+          {/* Image Upload */}
           <div className="space-y-2">
-            <Label htmlFor="imageUrl">Image URL</Label>
-            <Input
-              id="imageUrl"
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              placeholder="https://example.com/cow.jpg"
+            <Label>Image</Label>
+            <ImageUploader
+              currentImage={imageUrl}
+              onImageChange={setImageUrl}
             />
           </div>
 
