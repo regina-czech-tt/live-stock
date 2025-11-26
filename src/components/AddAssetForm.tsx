@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -109,7 +109,14 @@ export function AddAssetForm() {
   const investorOwnershipRaw = purchasePrice > 0 ? (fundingGoal / purchasePrice) * 100 : 0;
   const investorOwnership = Math.min(investorOwnershipRaw, 100).toFixed(0);
   const farmerOwnership = Math.max(100 - investorOwnershipRaw, 0).toFixed(0);
-  const isInvalidFunding = fundingGoal > purchasePrice;
+  const isInvalidFunding = fundingGoal > purchasePrice && purchasePrice > 0;
+
+  // Clear the fundingGoal error when it becomes valid
+  useEffect(() => {
+    if (fundingGoal <= purchasePrice && purchasePrice > 0 && form.formState.errors.fundingGoal) {
+      form.clearErrors("fundingGoal");
+    }
+  }, [purchasePrice, fundingGoal, form]);
 
   function onSubmit(values: FormValues) {
     /**
@@ -234,11 +241,16 @@ export function AddAssetForm() {
             name="fundingGoal"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Funding Goal (£)</FormLabel>
+                <FormLabel className={isInvalidFunding ? 'text-destructive' : ''}>Funding Goal (£)</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="e.g., 250" {...field} />
                 </FormControl>
                 <FormDescription>How much you want to raise from investors</FormDescription>
+                {isInvalidFunding && (
+                  <p className="text-sm font-medium text-destructive">
+                    Funding goal cannot exceed purchase price (investors can't own more than 100%)
+                  </p>
+                )}
                 <FormMessage />
               </FormItem>
             )}
