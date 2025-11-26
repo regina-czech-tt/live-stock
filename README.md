@@ -1,10 +1,10 @@
-# CowShares - Livestock Investment Platform
+# LiveStock - Livestock Investment Platform
 
 ## Business Model
 
 ### How It Works
 
-CowShares lets farmers sell fractional ownership of their livestock to investors. Farmers get immediate cash and reduced risk. Investors get exposure to agricultural returns.
+LiveStock lets farmers sell fractional ownership of their livestock to investors. Farmers get immediate cash and reduced risk. Investors get exposure to agricultural returns.
 
 ### The Flow
 

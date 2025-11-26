@@ -9,7 +9,7 @@ const Home = () => {
   // Temporary reset function for testing
   const handleReset = () => {
     if (confirm("This will reset all data to defaults. Are you sure?")) {
-      localStorage.removeItem("cowshares_data");
+      localStorage.removeItem("livestock_data");
       window.location.reload();
     }
   };

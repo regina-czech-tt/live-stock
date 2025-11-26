@@ -28,7 +28,7 @@ export const HowItWorks = () => {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="text-center mb-12">
-        <h3 className="text-3xl font-bold mb-3 text-foreground">How CowShare Works</h3>
+        <h3 className="text-3xl font-bold mb-3 text-foreground">How LiveStock Works</h3>
         <p className="text-muted-foreground max-w-2xl mx-auto">
           A simple, transparent way to invest in agriculture. Support farmers while building your portfolio.
         </p>

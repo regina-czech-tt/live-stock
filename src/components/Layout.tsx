@@ -11,7 +11,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
           <div className="flex items-center justify-between">
             <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="text-3xl">🐄</div>
-              <h1 className="text-2xl font-bold text-foreground">CowShare</h1>
+              <h1 className="text-2xl font-bold text-foreground">LiveStock</h1>
             </Link>
             <nav className="flex items-center gap-6">
               <NavLink
@@ -49,7 +49,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
       {/* Footer */}
       <footer className="border-t py-12 px-4">
         <div className="container mx-auto text-center text-muted-foreground">
-          <p>© 2024 CowShare. Connecting investors with agricultural opportunities.</p>
+          <p>© 2024 LiveStock. Connecting investors with agricultural opportunities.</p>
         </div>
       </footer>
     </div>

@@ -44,7 +44,7 @@ export function FarmerLayout({ children }: FarmerLayoutProps) {
           <Link to="/farmer" className="flex items-center gap-2">
             <div className="text-2xl">🐄</div>
             <div>
-              <h1 className="font-bold text-foreground">CowShare</h1>
+              <h1 className="font-bold text-foreground">LiveStock</h1>
               <p className="text-xs text-muted-foreground">Farmer Portal</p>
             </div>
           </Link>

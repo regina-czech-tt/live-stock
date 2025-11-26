@@ -237,7 +237,7 @@ const AppContext = createContext<AppContextType | null>(null);
  * It passes the state and update functions down to all children.
  */
 
-const STORAGE_KEY = 'cowshares_data';
+const STORAGE_KEY = 'livestock_data';
 
 // Initial state - loads mock data if nothing in localStorage
 const initialState: AppState = {
