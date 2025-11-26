@@ -40,6 +40,12 @@ import { toast } from "sonner";
  * - zodResolver: Connects Zod validation to React Hook Form
  */
 
+/**
+ * Form validation schema with business logic:
+ * - Funding goal must be <= purchase price (can't give investors more than 100%)
+ * - All prices must be positive numbers
+ * - Share price must be reasonable (at least £1)
+ */
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters").max(50),
   type: z.string().min(1, "Please select a type"),
@@ -48,6 +54,28 @@ const formSchema = z.object({
   fundingGoal: z.string().min(1, "Funding goal is required"),
   sharePrice: z.string().min(1, "Share price is required"),
   description: z.string().max(500, "Description must be less than 500 characters").optional(),
+}).refine((data) => {
+  const purchasePrice = Number(data.purchasePrice);
+  const fundingGoal = Number(data.fundingGoal);
+  return fundingGoal <= purchasePrice;
+}, {
+  message: "Funding goal cannot exceed purchase price (investors can't own more than 100%)",
+  path: ["fundingGoal"],
+}).refine((data) => {
+  return Number(data.purchasePrice) >= 1;
+}, {
+  message: "Purchase price must be at least £1",
+  path: ["purchasePrice"],
+}).refine((data) => {
+  return Number(data.sharePrice) >= 1;
+}, {
+  message: "Share price must be at least £1",
+  path: ["sharePrice"],
+}).refine((data) => {
+  return Number(data.fundingGoal) >= 1;
+}, {
+  message: "Funding goal must be at least £1",
+  path: ["fundingGoal"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -78,8 +106,10 @@ export function AddAssetForm() {
   const sharePrice = Number(form.watch("sharePrice")) || 10;
 
   const totalShares = sharePrice > 0 ? Math.floor(fundingGoal / sharePrice) : 0;
-  const investorOwnership = purchasePrice > 0 ? ((fundingGoal / purchasePrice) * 100).toFixed(0) : 0;
-  const farmerOwnership = purchasePrice > 0 ? (100 - (fundingGoal / purchasePrice) * 100).toFixed(0) : 100;
+  const investorOwnershipRaw = purchasePrice > 0 ? (fundingGoal / purchasePrice) * 100 : 0;
+  const investorOwnership = Math.min(investorOwnershipRaw, 100).toFixed(0);
+  const farmerOwnership = Math.max(100 - investorOwnershipRaw, 0).toFixed(0);
+  const isInvalidFunding = fundingGoal > purchasePrice;
 
   function onSubmit(values: FormValues) {
     /**
@@ -176,7 +206,7 @@ export function AddAssetForm() {
                     <SelectItem value="Hereford">Hereford</SelectItem>
                     <SelectItem value="Simmental">Simmental</SelectItem>
                     <SelectItem value="Charolais">Charolais</SelectItem>
-                    <SelectItem value="Heilan_Coo">Heilan Coo</SelectItem>
+                    <SelectItem value="Heilan Coo">Heilan Coo</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -242,8 +272,13 @@ export function AddAssetForm() {
 
         {/* Summary Box */}
         {purchasePrice > 0 && fundingGoal > 0 && (
-          <div className="bg-muted rounded-lg p-4 space-y-2">
+          <div className={`rounded-lg p-4 space-y-2 ${isInvalidFunding ? 'bg-red-50 border border-red-200' : 'bg-muted'}`}>
             <h4 className="font-semibold">Summary</h4>
+            {isInvalidFunding && (
+              <p className="text-sm text-red-600">
+                Funding goal cannot exceed purchase price - investors would own more than 100%!
+              </p>
+            )}
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <span className="text-muted-foreground">Total Shares:</span>
@@ -251,11 +286,11 @@ export function AddAssetForm() {
               </div>
               <div>
                 <span className="text-muted-foreground">Investor Ownership:</span>
-                <span className="ml-2 font-medium">{investorOwnership}%</span>
+                <span className={`ml-2 font-medium ${isInvalidFunding ? 'text-red-600' : ''}`}>{investorOwnership}%</span>
               </div>
               <div>
                 <span className="text-muted-foreground">Your Ownership:</span>
-                <span className="ml-2 font-medium">{farmerOwnership}%</span>
+                <span className={`ml-2 font-medium ${isInvalidFunding ? 'text-red-600' : ''}`}>{farmerOwnership}%</span>
               </div>
               <div>
                 <span className="text-muted-foreground">You Receive:</span>
