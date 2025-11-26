@@ -6,8 +6,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { SellAssetModal } from "@/components/SellAssetModal";
 import { EditAssetModal } from "@/components/EditAssetModal";
+import { AddAssetForm } from "@/components/AddAssetForm";
 import { useApp } from "@/context/AppContext";
-import { Pencil } from "lucide-react";
+import { Pencil, LayoutDashboard, PlusCircle } from "lucide-react";
 import {
   Asset,
   calculateTotalShares,
@@ -15,6 +16,8 @@ import {
   calculateFundingProgress,
   calculateInvestorOwnership,
 } from "@/types";
+
+type FarmerTab = "overview" | "add";
 
 /**
  * Farmer Dashboard Page
@@ -40,6 +43,7 @@ const FarmerDashboard = () => {
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [sellModalOpen, setSellModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<FarmerTab>("overview");
 
   /**
    * Filter to show only assets created by this farmer.
@@ -87,140 +91,182 @@ const FarmerDashboard = () => {
     setSelectedAsset(null);
   };
 
+  const sidebarItems = [
+    { id: "overview" as FarmerTab, label: "Overview", icon: LayoutDashboard },
+    { id: "add" as FarmerTab, label: "Add Asset", icon: PlusCircle },
+  ];
+
   return (
     <Layout>
-      <section className="py-20 px-4">
-        <div className="container mx-auto max-w-4xl">
-          {/* Page Header */}
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Farmer Dashboard</h1>
-            <p className="text-muted-foreground">
-              Manage your listed assets and complete sales
-            </p>
-          </div>
+      <div className="flex min-h-[calc(100vh-73px)]">
+        {/* Sidebar */}
+        <aside className="w-56 border-r bg-card/50 p-4 flex-shrink-0">
+          <nav className="space-y-1">
+            {sidebarItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  activeTab === item.id
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}
+              >
+                <item.icon className="w-4 h-4" />
+                {item.label}
+              </button>
+            ))}
+          </nav>
+        </aside>
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Assets
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{myAssets.length}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Funds Raised
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">£{totalRaised}</div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Active
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {openAssets.length + fundedAssets.length}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Sales
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  £{totalSold}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Open Assets */}
-          {openAssets.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Open for Investment</h2>
-              <div className="space-y-4">
-                {openAssets.map((asset) => (
-                  <FarmerAssetCard
-                    key={asset.id}
-                    asset={asset}
-                    onSell={handleSellClick}
-                    onEdit={handleEditClick}
-                    onMarkDeceased={handleMarkDeceased}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Funded Assets (Ready to Sell) */}
-          {fundedAssets.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">
-                Funded (Ready to Sell)
-              </h2>
-              <div className="space-y-4">
-                {fundedAssets.map((asset) => (
-                  <FarmerAssetCard
-                    key={asset.id}
-                    asset={asset}
-                    onSell={handleSellClick}
-                    onEdit={handleEditClick}
-                    onMarkDeceased={handleMarkDeceased}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Completed Assets */}
-          {completedAssets.length > 0 && (
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Completed</h2>
-              <div className="space-y-4">
-                {completedAssets.map((asset) => (
-                  <FarmerAssetCard
-                    key={asset.id}
-                    asset={asset}
-                    onSell={handleSellClick}
-                    onEdit={handleEditClick}
-                    onMarkDeceased={handleMarkDeceased}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Empty State */}
-          {myAssets.length === 0 && (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground mb-4">
-                  You haven't listed any assets yet.
+        {/* Main Content */}
+        <main className="flex-1 p-6 overflow-auto">
+          {activeTab === "overview" && (
+            <div className="max-w-4xl mx-auto">
+              {/* Page Header */}
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold mb-2">Overview</h1>
+                <p className="text-muted-foreground">
+                  Manage your listed assets and complete sales
                 </p>
-                <a href="/add-cow" className="text-primary hover:underline">
-                  List your first asset →
-                </a>
-              </CardContent>
-            </Card>
+              </div>
+
+              {/* Summary Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Total Assets
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{myAssets.length}</div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Funds Raised
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">£{totalRaised}</div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Active
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">
+                      {openAssets.length + fundedAssets.length}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-muted-foreground">
+                      Total Sales
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">
+                      £{totalSold}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Open Assets */}
+              {openAssets.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold mb-4">Open for Investment</h2>
+                  <div className="space-y-4">
+                    {openAssets.map((asset) => (
+                      <FarmerAssetCard
+                        key={asset.id}
+                        asset={asset}
+                        onSell={handleSellClick}
+                        onEdit={handleEditClick}
+                        onMarkDeceased={handleMarkDeceased}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Funded Assets (Ready to Sell) */}
+              {fundedAssets.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold mb-4">
+                    Funded (Ready to Sell)
+                  </h2>
+                  <div className="space-y-4">
+                    {fundedAssets.map((asset) => (
+                      <FarmerAssetCard
+                        key={asset.id}
+                        asset={asset}
+                        onSell={handleSellClick}
+                        onEdit={handleEditClick}
+                        onMarkDeceased={handleMarkDeceased}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Completed Assets */}
+              {completedAssets.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold mb-4">Completed</h2>
+                  <div className="space-y-4">
+                    {completedAssets.map((asset) => (
+                      <FarmerAssetCard
+                        key={asset.id}
+                        asset={asset}
+                        onSell={handleSellClick}
+                        onEdit={handleEditClick}
+                        onMarkDeceased={handleMarkDeceased}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Empty State */}
+              {myAssets.length === 0 && (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <p className="text-muted-foreground mb-4">
+                      You haven't listed any assets yet.
+                    </p>
+                    <Button onClick={() => setActiveTab("add")}>
+                      List your first asset
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           )}
-        </div>
-      </section>
+
+          {activeTab === "add" && (
+            <div className="max-w-2xl mx-auto">
+              <div className="mb-8">
+                <h1 className="text-3xl font-bold mb-2">Add New Asset</h1>
+                <p className="text-muted-foreground">
+                  List a new animal for investment
+                </p>
+              </div>
+              <AddAssetForm />
+            </div>
+          )}
+        </main>
+      </div>
 
       {/* Sell Modal */}
       <SellAssetModal
@@ -346,7 +392,8 @@ function FarmerAssetCard({ asset, onSell, onEdit, onMarkDeceased }: FarmerAssetC
               {canMarkDeceased && (
                 <Button
                   size="sm"
-                  variant="destructive"
+                  variant="outline"
+                  className="border-gray-400 text-muted-foreground hover:bg-transparent hover:text-destructive hover:border-destructive"
                   onClick={() => onMarkDeceased(asset)}
                 >
                   Mark Deceased

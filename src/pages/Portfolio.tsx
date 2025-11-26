@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useApp } from "@/context/AppContext";
 import {
+  Asset,
+  Investment,
   calculateTotalShares,
   calculateInvestorOwnership,
   calculateInvestorPayout,
@@ -222,25 +224,8 @@ const Portfolio = () => {
  * - Profit/loss (if completed)
  */
 interface InvestmentCardProps {
-  investment: {
-    id: string;
-    shares: number;
-    amountPaid: number;
-    payout?: number;
-    purchaseDate: string;
-  };
-  asset: {
-    id: string;
-    name: string;
-    type: string;
-    breed: string;
-    imageUrl: string;
-    status: string;
-    salePrice?: number;
-    purchasePrice: number;
-    fundingGoal: number;
-    sharePrice: number;
-  };
+  investment: Investment;
+  asset: Asset;
 }
 
 function InvestmentCard({ investment, asset }: InvestmentCardProps) {

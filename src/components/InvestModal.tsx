@@ -128,21 +128,24 @@ export function InvestModal({ asset, open, onClose }: InvestModalProps) {
                 id="shares"
                 type="number"
                 min={1}
-                max={sharesRemaining}
+                max={Math.round(sharesRemaining)}
                 value={shares}
-                onChange={(e) => setShares(Math.max(1, Number(e.target.value)))}
+                onChange={(e) => {
+                  const value = Number(e.target.value);
+                  setShares(Math.min(Math.max(1, value), Math.round(sharesRemaining)));
+                }}
                 className="w-20 text-center"
               />
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={() => setShares(Math.min(sharesRemaining, shares + 1))}
+                onClick={() => setShares(Math.min(Math.round(sharesRemaining), shares + 1))}
               >
                 +
               </Button>
               <span className="text-sm text-muted-foreground">
-                of {sharesRemaining} available
+                of {Math.round(sharesRemaining)} available
               </span>
             </div>
           </div>
