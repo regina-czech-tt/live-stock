@@ -42,17 +42,14 @@ const Marketplace = () => {
 
   return (
     <Layout>
-      <section className="py-20 px-4 farm-texture">
+      <section className="py-20 px-4">
         <div className="container mx-auto">
-          <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center justify-between mb-8">
             <div>
-              <div className="flex items-center gap-3 mb-3">
-                <span className="text-4xl">🐄</span>
-                <h3 className="text-4xl font-bold text-foreground">Available Cattle</h3>
-              </div>
-              <p className="text-lg text-foreground/70">Browse local livestock ready for fractional investment</p>
+              <h3 className="text-3xl font-bold mb-2 text-foreground">Available Investments</h3>
+              <p className="text-muted-foreground">Browse premium livestock ready for investment</p>
             </div>
-            <Button variant="outline" className="border-2 font-semibold">Filter & Sort</Button>
+            <Button variant="outline">View All</Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
