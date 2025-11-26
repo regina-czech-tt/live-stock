@@ -30,7 +30,7 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               </NavLink>
               <Link to="/portfolio">
                 <Button variant="outline" size="sm">
-                  Portfolio
+                  My Portfolio
                 </Button>
               </Link>
               <Link to="/farmer">
