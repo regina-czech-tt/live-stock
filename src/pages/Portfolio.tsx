@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useApp } from "@/context/AppContext";
 import {
+  Asset,
+  Investment,
   calculateTotalShares,
   calculateInvestorOwnership,
   calculateInvestorPayout,

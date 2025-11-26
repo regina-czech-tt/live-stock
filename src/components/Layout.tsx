@@ -14,26 +14,19 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               <h1 className="text-2xl font-bold text-foreground">CowShare</h1>
             </Link>
             <nav className="flex items-center gap-6">
-              <NavLink 
-                to="/marketplace" 
+              <NavLink
+                to="/marketplace"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 activeClassName="text-foreground"
               >
                 Marketplace
               </NavLink>
-              <NavLink 
-                to="/how-it-works" 
+              <NavLink
+                to="/how-it-works"
                 className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 activeClassName="text-foreground"
               >
                 How It Works
-              </NavLink>
-              <NavLink 
-                to="/add-cow" 
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                activeClassName="text-foreground"
-              >
-                Add Investment
               </NavLink>
               <Link to="/portfolio">
                 <Button variant="outline" size="sm">
