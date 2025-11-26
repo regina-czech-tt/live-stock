@@ -10,6 +10,7 @@ import HowItWorksPage from "./pages/HowItWorksPage";
 import AddCow from "./pages/AddCow";
 import Portfolio from "./pages/Portfolio";
 import FarmerDashboard from "./pages/FarmerDashboard";
+import AssetDetail from "./pages/AssetDetail";
 import NotFound from "./pages/NotFound";
 
 /**
@@ -40,6 +41,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/marketplace" element={<Marketplace />} />
+            <Route path="/asset/:id" element={<AssetDetail />} />
             <Route path="/how-it-works" element={<HowItWorksPage />} />
             <Route path="/add-cow" element={<AddCow />} />
             <Route path="/portfolio" element={<Portfolio />} />

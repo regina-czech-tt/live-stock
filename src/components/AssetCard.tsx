@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -36,34 +37,40 @@ export const AssetCard = ({ asset, onInvest }: AssetCardProps) => {
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
-      <div className="relative h-72 overflow-hidden">
-        <img
-          src={asset.imageUrl}
-          alt={asset.name}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-        />
-        <div className="absolute top-3 right-3">
-          <Badge
-            variant={status.variant}
-            className={asset.status === 'sold' ? 'bg-white text-gray-900 border-white' : ''}
-          >
-            {status.label}
-          </Badge>
-        </div>
-        <button
-          onClick={() => toggleFavorite(asset.id)}
-          className="absolute top-3 left-3 w-8 h-8 rounded-full bg-card/90 backdrop-blur flex items-center justify-center hover:bg-card transition-colors"
-        >
-          <Heart
-            className={`w-4 h-4 transition-colors ${
-              favorited ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
-            }`}
+      <Link to={`/asset/${asset.id}`} className="block">
+        <div className="relative h-72 overflow-hidden">
+          <img
+            src={asset.imageUrl}
+            alt={asset.name}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-        </button>
-      </div>
+          <div className="absolute top-3 right-3">
+            <Badge
+              variant={status.variant}
+              className={asset.status === 'sold' ? 'bg-white text-gray-900 border-white' : ''}
+            >
+              {status.label}
+            </Badge>
+          </div>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              toggleFavorite(asset.id);
+            }}
+            className="absolute top-3 left-3 w-8 h-8 rounded-full bg-card/90 backdrop-blur flex items-center justify-center hover:bg-card transition-colors"
+          >
+            <Heart
+              className={`w-4 h-4 transition-colors ${
+                favorited ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
+              }`}
+            />
+          </button>
+        </div>
+      </Link>
 
       <div className="p-5">
-        <div className="mb-4">
+        <Link to={`/asset/${asset.id}`} className="block mb-4 hover:opacity-80">
           <div className="flex items-start justify-between mb-1">
             <div>
               <h4 className="text-xl font-bold text-foreground">{asset.name}</h4>
@@ -75,7 +82,7 @@ export const AssetCard = ({ asset, onInvest }: AssetCardProps) => {
           <p className="text-xs text-muted-foreground">
             by {asset.farmerName}
           </p>
-        </div>
+        </Link>
 
         {/* Funding Progress */}
         <div className="space-y-3 mb-4">

@@ -1,7 +1,12 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { useApp } from "@/context/AppContext";
+import { Star } from "lucide-react";
 import {
   calculateTotalShares,
   calculateInvestorOwnership,
@@ -25,7 +30,14 @@ import {
  */
 
 const Portfolio = () => {
-  const { state } = useApp();
+  const { state, addReview, hasReviewed } = useApp();
+
+  // Helper to get user's review for an asset
+  const getUserReview = (assetId: string) => {
+    return (state.reviews || []).find(
+      r => r.assetId === assetId && r.investorId === state.currentUserId
+    );
+  };
 
   /**
    * Get current user's investments.
@@ -169,6 +181,9 @@ const Portfolio = () => {
                     key={investment.id}
                     investment={investment}
                     asset={asset!}
+                    canRate={!hasReviewed(asset!.id)}
+                    onRate={(rating, comment) => addReview(asset!.farmerId, asset!.id, rating, comment)}
+                    existingReview={getUserReview(asset!.id)}
                   />
                 ))}
               </div>
@@ -185,6 +200,9 @@ const Portfolio = () => {
                     key={investment.id}
                     investment={investment}
                     asset={asset!}
+                    canRate={!hasReviewed(asset!.id)}
+                    onRate={(rating, comment) => addReview(asset!.farmerId, asset!.id, rating, comment)}
+                    existingReview={getUserReview(asset!.id)}
                   />
                 ))}
               </div>
@@ -201,6 +219,9 @@ const Portfolio = () => {
                     key={investment.id}
                     investment={investment}
                     asset={asset!}
+                    canRate={!hasReviewed(asset!.id)}
+                    onRate={(rating, comment) => addReview(asset!.farmerId, asset!.id, rating, comment)}
+                    existingReview={getUserReview(asset!.id)}
                   />
                 ))}
               </div>
@@ -221,13 +242,30 @@ const Portfolio = () => {
  * - Amount paid
  * - Current status
  * - Profit/loss (if completed)
+ * - Rating option (for completed investments)
  */
 interface InvestmentCardProps {
   investment: Investment;
   asset: Asset;
+  canRate?: boolean;
+  onRate?: (rating: number, comment?: string) => void;
+  existingReview?: { rating: number; comment?: string };
 }
 
-function InvestmentCard({ investment, asset }: InvestmentCardProps) {
+function InvestmentCard({ investment, asset, canRate, onRate, existingReview }: InvestmentCardProps) {
+  const [showRating, setShowRating] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [hoverRating, setHoverRating] = useState(0);
+  const [comment, setComment] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmitRating = () => {
+    if (rating > 0 && onRate) {
+      onRate(rating, comment || undefined);
+      setSubmitted(true);
+      setShowRating(false);
+    }
+  };
   const totalShares = calculateTotalShares(asset);
   const ownershipPercent = ((investment.shares / totalShares) * calculateInvestorOwnership(asset) * 100).toFixed(2);
 
@@ -246,29 +284,30 @@ function InvestmentCard({ investment, asset }: InvestmentCardProps) {
   const status = statusConfig[asset.status] || { label: asset.status, variant: 'default' as const };
 
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex gap-4">
-          {/* Asset Image */}
-          <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
-            <img
-              src={asset.imageUrl}
-              alt={asset.name}
-              className="w-full h-full object-cover"
-            />
-          </div>
-
-          {/* Details */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between gap-2">
-              <div>
-                <h3 className="font-semibold">{asset.name}</h3>
-                <p className="text-sm text-muted-foreground">
-                  {asset.type} • {asset.breed}
-                </p>
-              </div>
-              <Badge variant={status.variant}>{status.label}</Badge>
+    <Link to={`/asset/${asset.id}`} className="block">
+      <Card className="hover:shadow-md transition-shadow cursor-pointer">
+        <CardContent className="p-4">
+          <div className="flex gap-4">
+            {/* Asset Image */}
+            <div className="w-20 h-20 rounded-lg overflow-hidden flex-shrink-0">
+              <img
+                src={asset.imageUrl}
+                alt={asset.name}
+                className="w-full h-full object-cover"
+              />
             </div>
+
+            {/* Details */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="font-semibold">{asset.name}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {asset.type} • {asset.breed}
+                  </p>
+                </div>
+                <Badge variant={status.variant}>{status.label}</Badge>
+              </div>
 
             <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
               <div>
@@ -299,10 +338,126 @@ function InvestmentCard({ investment, asset }: InvestmentCardProps) {
                 </div>
               )}
             </div>
+
+            {/* Rating Section */}
+            {canRate && !submitted && (
+              <div className="mt-4 pt-4 border-t">
+                {!showRating ? (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowRating(true)}
+                  >
+                    <Star className="w-4 h-4 mr-2" />
+                    Rate {asset.farmerName}
+                  </Button>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-muted-foreground">Your rating:</span>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            onClick={() => setRating(star)}
+                            onMouseEnter={() => setHoverRating(star)}
+                            onMouseLeave={() => setHoverRating(0)}
+                            className="p-0.5"
+                          >
+                            <Star
+                              className={`w-5 h-5 transition-colors ${
+                                star <= (hoverRating || rating)
+                                  ? "fill-yellow-400 text-yellow-400"
+                                  : "text-muted-foreground"
+                              }`}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <Textarea
+                      placeholder="Add a comment (optional)"
+                      value={comment}
+                      onChange={(e) => setComment(e.target.value)}
+                      rows={2}
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        onClick={handleSubmitRating}
+                        disabled={rating === 0}
+                      >
+                        Submit Review
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => {
+                          setShowRating(false);
+                          setRating(0);
+                          setComment("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Show submitted confirmation with rating */}
+            {submitted && (
+              <div className="mt-4 pt-4 border-t">
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-4 h-4 ${
+                          star <= rating
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-muted-foreground"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-green-600">Thank you for your review!</span>
+                </div>
+                {comment && (
+                  <p className="text-sm text-muted-foreground mt-2">"{comment}"</p>
+                )}
+              </div>
+            )}
+
+            {/* Show existing review (when canRate is false, meaning already reviewed) */}
+            {!canRate && !submitted && existingReview && (
+              <div className="mt-4 pt-4 border-t">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Your review:</span>
+                  <div className="flex gap-0.5">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <Star
+                        key={star}
+                        className={`w-4 h-4 ${
+                          star <= existingReview.rating
+                            ? "fill-yellow-400 text-yellow-400"
+                            : "text-muted-foreground"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                {existingReview.comment && (
+                  <p className="text-sm text-muted-foreground mt-2">"{existingReview.comment}"</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </CardContent>
     </Card>
+    </Link>
   );
 }
 

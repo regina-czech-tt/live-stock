@@ -1,6 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, ReactNode } from 'react';
-import { Asset, Investment } from '@/types';
+import { Asset, Investment, Farmer, FarmerReview } from '@/types';
 import { mockAssets } from '@/data/assets';
+import { mockFarmers } from '@/data/farmers';
 
 /**
  * ==========================================
@@ -28,6 +29,8 @@ import { mockAssets } from '@/data/assets';
 interface AppState {
   assets: Asset[];           // All listed animals
   investments: Investment[]; // All share purchases
+  farmers: Farmer[];         // All farmers
+  reviews: FarmerReview[];   // Farmer reviews from investors
   currentUserId: string;     // Temporary - will be real auth later
   favorites: string[];       // Array of asset IDs that user has favorited
 }
@@ -50,6 +53,8 @@ type Action =
   | { type: 'SELL_ASSET'; payload: { assetId: string; salePrice: number } }
   | { type: 'MARK_DECEASED'; payload: { assetId: string } }
   | { type: 'TOGGLE_FAVORITE'; payload: { assetId: string } }
+  | { type: 'UPDATE_FARMER'; payload: { farmerId: string; updates: Partial<Farmer> } }
+  | { type: 'ADD_REVIEW'; payload: { farmerId: string; assetId: string; rating: number; comment?: string } }
   | { type: 'LOAD_STATE'; payload: AppState };
 
 // ==========================================
@@ -196,9 +201,63 @@ function appReducer(state: AppState, action: Action): AppState {
       };
     }
 
+    // Update a farmer's profile
+    case 'UPDATE_FARMER': {
+      const { farmerId, updates } = action.payload;
+      const updatedFarmers = state.farmers.map(farmer =>
+        farmer.id === farmerId
+          ? { ...farmer, ...updates }
+          : farmer
+      );
+      return {
+        ...state,
+        farmers: updatedFarmers,
+      };
+    }
+
+    // Add a review for a farmer
+    case 'ADD_REVIEW': {
+      const { farmerId, assetId, rating, comment } = action.payload;
+
+      // Create new review
+      const newReview: FarmerReview = {
+        id: crypto.randomUUID(),
+        farmerId,
+        assetId,
+        investorId: state.currentUserId,
+        investorName: 'Investor', // TODO: Get from user profile
+        rating,
+        comment,
+        createdAt: new Date().toISOString(),
+      };
+
+      // Calculate new average rating for farmer
+      const farmerReviews = [...(state.reviews || []), newReview].filter(r => r.farmerId === farmerId);
+      const avgRating = farmerReviews.reduce((sum, r) => sum + r.rating, 0) / farmerReviews.length;
+
+      // Update farmer's rating
+      const updatedFarmers = state.farmers.map(farmer =>
+        farmer.id === farmerId
+          ? { ...farmer, rating: Math.round(avgRating * 10) / 10, reviewCount: farmerReviews.length }
+          : farmer
+      );
+
+      return {
+        ...state,
+        reviews: [...(state.reviews || []), newReview],
+        farmers: updatedFarmers,
+      };
+    }
+
     // Load saved state from localStorage
+    // Merge with initial state to ensure new fields (like farmers) exist
     case 'LOAD_STATE':
-      return action.payload;
+      return {
+        ...initialState,
+        ...action.payload,
+        // Ensure farmers array exists (for backwards compatibility)
+        farmers: action.payload.farmers || initialState.farmers,
+      };
 
     default:
       return state;
@@ -224,6 +283,11 @@ interface AppContextType {
   markDeceased: (assetId: string) => void;
   toggleFavorite: (assetId: string) => void;
   isFavorite: (assetId: string) => boolean;
+  getFarmer: (farmerId: string) => Farmer | undefined;
+  getAsset: (assetId: string) => Asset | undefined;
+  updateFarmer: (farmerId: string, updates: Partial<Farmer>) => void;
+  addReview: (farmerId: string, assetId: string, rating: number, comment?: string) => void;
+  hasReviewed: (assetId: string) => boolean;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -243,6 +307,8 @@ const STORAGE_KEY = 'livestock_data';
 const initialState: AppState = {
   assets: mockAssets,
   investments: [],
+  farmers: mockFarmers,
+  reviews: [],             // No reviews initially
   currentUserId: 'user-1', // Hardcoded for now
   favorites: [],           // No favorites initially
 };
@@ -310,8 +376,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return state.favorites.includes(assetId);
   };
 
+  // Helper to get a farmer by ID
+  const getFarmer = (farmerId: string) => {
+    return state.farmers?.find(f => f.id === farmerId);
+  };
+
+  // Helper to get an asset by ID
+  const getAsset = (assetId: string) => {
+    return state.assets.find(a => a.id === assetId);
+  };
+
+  // Update a farmer's profile
+  const updateFarmer = (farmerId: string, updates: Partial<Farmer>) => {
+    dispatch({ type: 'UPDATE_FARMER', payload: { farmerId, updates } });
+  };
+
+  // Add a review for a farmer (after an investment is completed)
+  const addReview = (farmerId: string, assetId: string, rating: number, comment?: string) => {
+    dispatch({ type: 'ADD_REVIEW', payload: { farmerId, assetId, rating, comment } });
+  };
+
+  // Check if current user has already reviewed a specific asset
+  const hasReviewed = (assetId: string) => {
+    return (state.reviews || []).some(
+      r => r.assetId === assetId && r.investorId === state.currentUserId
+    );
+  };
+
   return (
-    <AppContext.Provider value={{ state, addAsset, updateAsset, buyShares, sellAsset, markDeceased, toggleFavorite, isFavorite }}>
+    <AppContext.Provider value={{ state, addAsset, updateAsset, buyShares, sellAsset, markDeceased, toggleFavorite, isFavorite, getFarmer, getAsset, updateFarmer, addReview, hasReviewed }}>
       {children}
     </AppContext.Provider>
   );
