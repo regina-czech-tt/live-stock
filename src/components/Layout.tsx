@@ -28,6 +28,13 @@ export const Layout = ({ children }: { children: React.ReactNode }) => {
               >
                 How It Works
               </NavLink>
+              <NavLink 
+                to="/add-cow" 
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                activeClassName="text-foreground"
+              >
+                Add Investment
+              </NavLink>
               <Button variant="outline" size="sm">
                 Portfolio
               </Button>
