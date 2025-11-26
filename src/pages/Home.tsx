@@ -25,10 +25,10 @@ const Home = () => {
           <h1 className="text-5xl font-bold mb-6 text-foreground">
             Don't Have a Cow,
             <br />
-            <span className="text-primary">Own One Instead</span>
+            <span className="text-primary">Own Part of One Instead</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Help local dairy farmers thrive by investing in their livestock.
+            Help local farmers thrive by investing in their livestock.
             It's time to mooo-ve your money where it matters—supporting the backbone of our dairy industry,
             one cow at a time.
           </p>
