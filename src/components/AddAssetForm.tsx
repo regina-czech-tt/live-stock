@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -20,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ImageUploader } from "@/components/ImageUploader";
 import { useApp } from "@/context/AppContext";
 import { toast } from "sonner";
 
@@ -45,7 +47,6 @@ const formSchema = z.object({
   purchasePrice: z.string().min(1, "Purchase price is required"),
   fundingGoal: z.string().min(1, "Funding goal is required"),
   sharePrice: z.string().min(1, "Share price is required"),
-  imageUrl: z.string().url("Please enter a valid image URL").optional().or(z.literal("")),
   description: z.string().max(500, "Description must be less than 500 characters").optional(),
 });
 
@@ -54,6 +55,10 @@ type FormValues = z.infer<typeof formSchema>;
 export function AddAssetForm() {
   // Get addAsset function from context
   const { addAsset } = useApp();
+
+  // Image state is managed separately from the form
+  // because we're using a custom ImageUploader component
+  const [imageUrl, setImageUrl] = useState("");
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -64,7 +69,6 @@ export function AddAssetForm() {
       purchasePrice: "",
       fundingGoal: "",
       sharePrice: "10",
-      imageUrl: "",
       description: "",
     },
   });
@@ -92,7 +96,7 @@ export function AddAssetForm() {
       amountRaised: 0,  // Starts at 0 - no shares sold yet
       sharePrice: Number(values.sharePrice),
       status: 'open' as const,  // New assets start in "open" status
-      imageUrl: values.imageUrl || 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=600&q=80',
+      imageUrl: imageUrl || 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=600&q=80',
       description: values.description,
       farmerId: 'current-user', // TODO: Get from auth
       farmerName: 'Current User', // TODO: Get from auth
@@ -108,6 +112,7 @@ export function AddAssetForm() {
 
     toast.success("Asset listed successfully!");
     form.reset();
+    setImageUrl(""); // Reset image too
   }
 
   return (
@@ -171,6 +176,7 @@ export function AddAssetForm() {
                     <SelectItem value="Hereford">Hereford</SelectItem>
                     <SelectItem value="Simmental">Simmental</SelectItem>
                     <SelectItem value="Charolais">Charolais</SelectItem>
+                    <SelectItem value="Heilan_Coo">Heilan Coo</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -223,18 +229,14 @@ export function AddAssetForm() {
             )}
           />
 
-          <FormField
-            control={form.control}
-            name="imageUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Image URL (Optional)</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://example.com/cow.jpg" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
+        </div>
+
+        {/* Image Upload */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Image</label>
+          <ImageUploader
+            currentImage={imageUrl}
+            onImageChange={setImageUrl}
           />
         </div>
 
