@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { SellAssetModal } from "@/components/SellAssetModal";
+import { EditAssetModal } from "@/components/EditAssetModal";
 import { useApp } from "@/context/AppContext";
+import { Pencil } from "lucide-react";
 import {
   Asset,
   calculateTotalShares,
@@ -37,6 +39,7 @@ const FarmerDashboard = () => {
   const { state, markDeceased } = useApp();
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [sellModalOpen, setSellModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
 
   /**
    * Filter to show only assets created by this farmer.
@@ -46,8 +49,8 @@ const FarmerDashboard = () => {
   const myAssets = state.assets;
 
   // Group assets by status
-  const fundingAssets = myAssets.filter((a) => a.status === "funding");
-  const raisingAssets = myAssets.filter((a) => a.status === "raising");
+  const openAssets = myAssets.filter((a) => a.status === "open");
+  const fundedAssets = myAssets.filter((a) => a.status === "funded");
   const completedAssets = myAssets.filter(
     (a) => a.status === "sold" || a.status === "deceased"
   );
@@ -63,14 +66,24 @@ const FarmerDashboard = () => {
     setSellModalOpen(true);
   };
 
+  const handleEditClick = (asset: Asset) => {
+    setSelectedAsset(asset);
+    setEditModalOpen(true);
+  };
+
   const handleMarkDeceased = (asset: Asset) => {
     if (confirm(`Are you sure you want to mark ${asset.name} as deceased? This cannot be undone.`)) {
       markDeceased(asset.id);
     }
   };
 
-  const handleCloseModal = () => {
+  const handleCloseSellModal = () => {
     setSellModalOpen(false);
+    setSelectedAsset(null);
+  };
+
+  const handleCloseEditModal = () => {
+    setEditModalOpen(false);
     setSelectedAsset(null);
   };
 
@@ -118,7 +131,7 @@ const FarmerDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">
-                  {fundingAssets.length + raisingAssets.length}
+                  {openAssets.length + fundedAssets.length}
                 </div>
               </CardContent>
             </Card>
@@ -137,16 +150,17 @@ const FarmerDashboard = () => {
             </Card>
           </div>
 
-          {/* Funding Assets */}
-          {fundingAssets.length > 0 && (
+          {/* Open Assets */}
+          {openAssets.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Currently Funding</h2>
+              <h2 className="text-xl font-semibold mb-4">Open for Investment</h2>
               <div className="space-y-4">
-                {fundingAssets.map((asset) => (
+                {openAssets.map((asset) => (
                   <FarmerAssetCard
                     key={asset.id}
                     asset={asset}
                     onSell={handleSellClick}
+                    onEdit={handleEditClick}
                     onMarkDeceased={handleMarkDeceased}
                   />
                 ))}
@@ -154,18 +168,19 @@ const FarmerDashboard = () => {
             </div>
           )}
 
-          {/* Raising Assets (Fully Funded) */}
-          {raisingAssets.length > 0 && (
+          {/* Funded Assets (Ready to Sell) */}
+          {fundedAssets.length > 0 && (
             <div className="mb-8">
               <h2 className="text-xl font-semibold mb-4">
-                Raising (Ready to Sell)
+                Funded (Ready to Sell)
               </h2>
               <div className="space-y-4">
-                {raisingAssets.map((asset) => (
+                {fundedAssets.map((asset) => (
                   <FarmerAssetCard
                     key={asset.id}
                     asset={asset}
                     onSell={handleSellClick}
+                    onEdit={handleEditClick}
                     onMarkDeceased={handleMarkDeceased}
                   />
                 ))}
@@ -183,6 +198,7 @@ const FarmerDashboard = () => {
                     key={asset.id}
                     asset={asset}
                     onSell={handleSellClick}
+                    onEdit={handleEditClick}
                     onMarkDeceased={handleMarkDeceased}
                   />
                 ))}
@@ -210,7 +226,14 @@ const FarmerDashboard = () => {
       <SellAssetModal
         asset={selectedAsset}
         open={sellModalOpen}
-        onClose={handleCloseModal}
+        onClose={handleCloseSellModal}
+      />
+
+      {/* Edit Modal */}
+      <EditAssetModal
+        asset={selectedAsset}
+        open={editModalOpen}
+        onClose={handleCloseEditModal}
       />
     </Layout>
   );
@@ -227,25 +250,26 @@ const FarmerDashboard = () => {
 interface FarmerAssetCardProps {
   asset: Asset;
   onSell: (asset: Asset) => void;
+  onEdit: (asset: Asset) => void;
   onMarkDeceased: (asset: Asset) => void;
 }
 
-function FarmerAssetCard({ asset, onSell, onMarkDeceased }: FarmerAssetCardProps) {
+function FarmerAssetCard({ asset, onSell, onEdit, onMarkDeceased }: FarmerAssetCardProps) {
   const totalShares = calculateTotalShares(asset);
   const sharesSold = calculateSharesSold(asset);
   const fundingProgress = calculateFundingProgress(asset);
   const investorOwnership = calculateInvestorOwnership(asset) * 100;
 
   const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-    funding: { label: "Funding", variant: "default" },
-    raising: { label: "Raising", variant: "secondary" },
+    open: { label: "Open", variant: "default" },
+    funded: { label: "Funded", variant: "secondary" },
     sold: { label: "Sold", variant: "outline" },
     deceased: { label: "Deceased", variant: "destructive" },
   };
 
   const status = statusConfig[asset.status];
-  const canSell = asset.status === "raising" || asset.status === "funding";
-  const canMarkDeceased = asset.status === "funding" || asset.status === "raising";
+  const canSell = asset.status === "funded" || asset.status === "open";
+  const canMarkDeceased = asset.status === "open" || asset.status === "funded";
 
   return (
     <Card>
@@ -273,7 +297,7 @@ function FarmerAssetCard({ asset, onSell, onMarkDeceased }: FarmerAssetCardProps
             </div>
 
             {/* Funding Progress (for active assets) */}
-            {(asset.status === "funding" || asset.status === "raising") && (
+            {(asset.status === "open" || asset.status === "funded") && (
               <div className="mb-3">
                 <div className="flex justify-between text-sm mb-1">
                   <span className="text-muted-foreground">Funding</span>
@@ -302,24 +326,33 @@ function FarmerAssetCard({ asset, onSell, onMarkDeceased }: FarmerAssetCardProps
             )}
 
             {/* Action Buttons */}
-            {(canSell || canMarkDeceased) && (
-              <div className="flex gap-2 mt-3">
-                {canSell && (
-                  <Button size="sm" onClick={() => onSell(asset)}>
-                    Mark as Sold
-                  </Button>
-                )}
-                {canMarkDeceased && (
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => onMarkDeceased(asset)}
-                  >
-                    Mark Deceased
-                  </Button>
-                )}
-              </div>
-            )}
+            <div className="flex gap-2 mt-3">
+              {/* Edit button - always available for active assets */}
+              {(asset.status === "open" || asset.status === "funded") && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onEdit(asset)}
+                >
+                  <Pencil className="w-3 h-3 mr-1" />
+                  Edit
+                </Button>
+              )}
+              {canSell && (
+                <Button size="sm" onClick={() => onSell(asset)}>
+                  Mark as Sold
+                </Button>
+              )}
+              {canMarkDeceased && (
+                <Button
+                  size="sm"
+                  variant="destructive"
+                  onClick={() => onMarkDeceased(asset)}
+                >
+                  Mark Deceased
+                </Button>
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

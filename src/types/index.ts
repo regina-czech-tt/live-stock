@@ -1,4 +1,12 @@
-export type AssetStatus = 'funding' | 'raising' | 'sold' | 'deceased';
+/**
+ * Asset Status - The lifecycle stages of an investment
+ *
+ * - open: Accepting investments, shares available to buy
+ * - funded: Fully funded, animal being raised, waiting for sale
+ * - sold: Sale complete, returns distributed
+ * - deceased: Animal died, investment lost
+ */
+export type AssetStatus = 'open' | 'funded' | 'sold' | 'deceased';
 
 export interface Asset {
   id: string;

@@ -29,6 +29,7 @@ interface AppState {
   assets: Asset[];           // All listed animals
   investments: Investment[]; // All share purchases
   currentUserId: string;     // Temporary - will be real auth later
+  favorites: string[];       // Array of asset IDs that user has favorited
 }
 
 // ==========================================
@@ -44,9 +45,11 @@ interface AppState {
  */
 type Action =
   | { type: 'ADD_ASSET'; payload: Asset }
+  | { type: 'UPDATE_ASSET'; payload: { assetId: string; updates: Partial<Asset> } }
   | { type: 'BUY_SHARES'; payload: { assetId: string; shares: number; amount: number } }
   | { type: 'SELL_ASSET'; payload: { assetId: string; salePrice: number } }
   | { type: 'MARK_DECEASED'; payload: { assetId: string } }
+  | { type: 'TOGGLE_FAVORITE'; payload: { assetId: string } }
   | { type: 'LOAD_STATE'; payload: AppState };
 
 // ==========================================
@@ -70,6 +73,20 @@ function appReducer(state: AppState, action: Action): AppState {
         assets: [...state.assets, action.payload],  // Add new asset to array
       };
 
+    // When a farmer updates their asset
+    case 'UPDATE_ASSET': {
+      const { assetId, updates } = action.payload;
+      const updatedAssets = state.assets.map(asset =>
+        asset.id === assetId
+          ? { ...asset, ...updates }
+          : asset
+      );
+      return {
+        ...state,
+        assets: updatedAssets,
+      };
+    }
+
     // When an investor buys shares
     case 'BUY_SHARES': {
       const { assetId, shares, amount } = action.payload;
@@ -92,7 +109,7 @@ function appReducer(state: AppState, action: Action): AppState {
           return {
             ...asset,
             amountRaised: newAmountRaised,
-            status: isFunded ? 'raising' as const : asset.status,
+            status: isFunded ? 'funded' as const : asset.status,
           };
         }
         return asset;
@@ -166,6 +183,19 @@ function appReducer(state: AppState, action: Action): AppState {
       };
     }
 
+    // Toggle favorite status for an asset
+    case 'TOGGLE_FAVORITE': {
+      const { assetId } = action.payload;
+      const isFavorited = state.favorites.includes(assetId);
+
+      return {
+        ...state,
+        favorites: isFavorited
+          ? state.favorites.filter(id => id !== assetId)  // Remove from favorites
+          : [...state.favorites, assetId],                // Add to favorites
+      };
+    }
+
     // Load saved state from localStorage
     case 'LOAD_STATE':
       return action.payload;
@@ -188,9 +218,12 @@ interface AppContextType {
   state: AppState;
   // These are the functions components will call to update state
   addAsset: (asset: Asset) => void;
+  updateAsset: (assetId: string, updates: Partial<Asset>) => void;
   buyShares: (assetId: string, shares: number, amount: number) => void;
   sellAsset: (assetId: string, salePrice: number) => void;
   markDeceased: (assetId: string) => void;
+  toggleFavorite: (assetId: string) => void;
+  isFavorite: (assetId: string) => boolean;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -211,6 +244,7 @@ const initialState: AppState = {
   assets: mockAssets,
   investments: [],
   currentUserId: 'user-1', // Hardcoded for now
+  favorites: [],           // No favorites initially
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -251,6 +285,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'ADD_ASSET', payload: asset });
   };
 
+  const updateAsset = (assetId: string, updates: Partial<Asset>) => {
+    dispatch({ type: 'UPDATE_ASSET', payload: { assetId, updates } });
+  };
+
   const buyShares = (assetId: string, shares: number, amount: number) => {
     dispatch({ type: 'BUY_SHARES', payload: { assetId, shares, amount } });
   };
@@ -263,8 +301,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'MARK_DECEASED', payload: { assetId } });
   };
 
+  const toggleFavorite = (assetId: string) => {
+    dispatch({ type: 'TOGGLE_FAVORITE', payload: { assetId } });
+  };
+
+  // Helper to check if an asset is favorited
+  const isFavorite = (assetId: string) => {
+    return state.favorites.includes(assetId);
+  };
+
   return (
-    <AppContext.Provider value={{ state, addAsset, buyShares, sellAsset, markDeceased }}>
+    <AppContext.Provider value={{ state, addAsset, updateAsset, buyShares, sellAsset, markDeceased, toggleFavorite, isFavorite }}>
       {children}
     </AppContext.Provider>
   );

@@ -91,7 +91,7 @@ export function AddAssetForm() {
       fundingGoal: Number(values.fundingGoal),
       amountRaised: 0,  // Starts at 0 - no shares sold yet
       sharePrice: Number(values.sharePrice),
-      status: 'funding' as const,  // New assets start in "funding" status
+      status: 'open' as const,  // New assets start in "open" status
       imageUrl: values.imageUrl || 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=600&q=80',
       description: values.description,
       farmerId: 'current-user', // TODO: Get from auth

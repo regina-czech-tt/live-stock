@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Heart } from "lucide-react";
+import { useApp } from "@/context/AppContext";
 import {
   Asset,
   calculateTotalShares,
@@ -17,18 +18,20 @@ interface AssetCardProps {
 }
 
 const statusConfig = {
-  funding: { label: 'Funding', variant: 'default' as const, color: 'bg-blue-500' },
-  raising: { label: 'Raising', variant: 'secondary' as const, color: 'bg-amber-500' },
-  sold: { label: 'Sold', variant: 'outline' as const, color: 'bg-green-500' },
-  deceased: { label: 'Deceased', variant: 'destructive' as const, color: 'bg-red-500' },
+  open: { label: 'Open', variant: 'default' as const },
+  funded: { label: 'Funded', variant: 'secondary' as const },
+  sold: { label: 'Sold', variant: 'outline' as const },
+  deceased: { label: 'Deceased', variant: 'destructive' as const },
 };
 
 export const AssetCard = ({ asset, onInvest }: AssetCardProps) => {
+  const { toggleFavorite, isFavorite } = useApp();
   const totalShares = calculateTotalShares(asset);
   const sharesRemaining = calculateSharesRemaining(asset);
   const fundingProgress = calculateFundingProgress(asset);
   const investorOwnership = calculateInvestorOwnership(asset) * 100;
   const status = statusConfig[asset.status];
+  const favorited = isFavorite(asset.id);
 
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 group">
@@ -39,12 +42,22 @@ export const AssetCard = ({ asset, onInvest }: AssetCardProps) => {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
         <div className="absolute top-3 right-3">
-          <Badge variant={status.variant}>
+          <Badge
+            variant={status.variant}
+            className={asset.status === 'sold' ? 'bg-white text-gray-900 border-white' : ''}
+          >
             {status.label}
           </Badge>
         </div>
-        <button className="absolute top-3 left-3 w-8 h-8 rounded-full bg-card/90 backdrop-blur flex items-center justify-center hover:bg-card transition-colors">
-          <Heart className="w-4 h-4 text-muted-foreground" />
+        <button
+          onClick={() => toggleFavorite(asset.id)}
+          className="absolute top-3 left-3 w-8 h-8 rounded-full bg-card/90 backdrop-blur flex items-center justify-center hover:bg-card transition-colors"
+        >
+          <Heart
+            className={`w-4 h-4 transition-colors ${
+              favorited ? 'fill-red-500 text-red-500' : 'text-muted-foreground'
+            }`}
+          />
         </button>
       </div>
 
@@ -91,7 +104,7 @@ export const AssetCard = ({ asset, onInvest }: AssetCardProps) => {
           </div>
         </div>
 
-        {asset.status === 'funding' && (
+        {asset.status === 'open' && (
           <Button
             className="w-full"
             onClick={() => onInvest?.(asset)}
@@ -100,7 +113,7 @@ export const AssetCard = ({ asset, onInvest }: AssetCardProps) => {
           </Button>
         )}
 
-        {asset.status === 'raising' && (
+        {asset.status === 'funded' && (
           <Button className="w-full" variant="secondary" disabled>
             Fully Funded
           </Button>
