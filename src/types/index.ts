@@ -46,6 +46,36 @@ export interface User {
   role: 'investor' | 'farmer';
 }
 
+export interface Farmer {
+  id: string;
+  name: string;
+  farmName: string;
+  location: string;
+  bio: string;
+  imageUrl?: string;
+  established?: number;        // Year farm was established
+  specialties?: string[];      // e.g., ["Dairy", "Beef", "Organic"]
+  // Stats (calculated from assets)
+  totalAssets?: number;
+  totalSold?: number;
+  successRate?: number;        // % of animals sold (not deceased)
+  totalRaised?: number;
+  // Trust score
+  rating?: number;             // Average rating (1-5)
+  reviewCount?: number;
+}
+
+export interface FarmerReview {
+  id: string;
+  farmerId: string;
+  investorId: string;
+  investorName: string;
+  assetId: string;
+  rating: number;              // 1-5 stars
+  comment?: string;
+  createdAt: string;
+}
+
 // Utility functions for calculations
 export const calculateTotalShares = (asset: Asset): number => {
   return asset.fundingGoal / asset.sharePrice;

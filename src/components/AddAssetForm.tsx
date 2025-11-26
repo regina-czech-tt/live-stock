@@ -40,6 +40,11 @@ import { toast } from "sonner";
  * - zodResolver: Connects Zod validation to React Hook Form
  */
 
+interface AddAssetFormProps {
+  farmerId: string;
+  farmerName: string;
+}
+
 /**
  * Form validation schema with business logic:
  * - Funding goal must be <= purchase price (can't give investors more than 100%)
@@ -80,7 +85,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export function AddAssetForm() {
+export function AddAssetForm({ farmerId, farmerName }: AddAssetFormProps) {
   // Get addAsset function from context
   const { addAsset } = useApp();
 
@@ -135,8 +140,8 @@ export function AddAssetForm() {
       status: 'open' as const,  // New assets start in "open" status
       imageUrl: imageUrl || 'https://images.unsplash.com/photo-1570042225831-d98fa7577f1e?w=600&q=80',
       description: values.description,
-      farmerId: 'current-user', // TODO: Get from auth
-      farmerName: 'Current User', // TODO: Get from auth
+      farmerId: farmerId,
+      farmerName: farmerName,
     };
 
     /**

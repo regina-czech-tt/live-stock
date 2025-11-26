@@ -14,7 +14,7 @@ export const mockAssets: Asset[] = [
     sharePrice: 10,
     status: 'open',
     farmerId: 'farmer-1',
-    farmerName: 'Gavin Millar',
+    farmerName: 'Regina Czech',
   },
   {
     id: '2',
@@ -29,7 +29,7 @@ export const mockAssets: Asset[] = [
     sharePrice: 10,
     status: 'funded',
     farmerId: 'farmer-1',
-    farmerName: 'Matthew Millar',
+    farmerName: 'Regina Czech',
   },
   {
     id: '3',
@@ -44,8 +44,8 @@ export const mockAssets: Asset[] = [
     sharePrice: 10,
     status: 'sold',
     salePrice: 900,
-    farmerId: 'farmer-2',
-    farmerName: 'Matthew Millar',
+    farmerId: 'farmer-1',
+    farmerName: 'Regina Czech',
   },
   {
     id: '4',
@@ -59,7 +59,7 @@ export const mockAssets: Asset[] = [
     amountRaised: 80,
     sharePrice: 10,
     status: 'open',
-    farmerId: 'farmer-2',
+    farmerId: 'farmer-1',
     farmerName: 'Regina Czech',
   },
 ];
