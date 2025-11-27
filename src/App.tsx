@@ -1,9 +1,10 @@
+import { useEffect, useRef } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AppProvider } from "@/context/AppContext";
+import { AppProvider, useApp } from "@/context/AppContext";
 import Home from "./pages/Home";
 import Marketplace from "./pages/Marketplace";
 import HowItWorksPage from "./pages/HowItWorksPage";
@@ -12,6 +13,45 @@ import Portfolio from "./pages/Portfolio";
 import FarmerDashboard from "./pages/FarmerDashboard";
 import AssetDetail from "./pages/AssetDetail";
 import NotFound from "./pages/NotFound";
+
+const BackgroundMusic = () => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const { state } = useApp();
+
+  useEffect(() => {
+    if (state.musicStarted && audioRef.current) {
+      audioRef.current.volume = 0.3;
+      audioRef.current.play().catch((err) => {
+        // Browser blocked autoplay - needs user interaction first
+        console.log("Audio play blocked:", err.message);
+      });
+    }
+  }, [state.musicStarted]);
+
+  // Handle page refresh - if music was started, resume on first user click
+  useEffect(() => {
+    if (!state.musicStarted) return;
+
+    const resumeAudio = () => {
+      if (audioRef.current && audioRef.current.paused) {
+        audioRef.current.volume = 0.3;
+        audioRef.current.play().catch(() => {});
+      }
+      document.removeEventListener("click", resumeAudio);
+    };
+
+    document.addEventListener("click", resumeAudio);
+    return () => document.removeEventListener("click", resumeAudio);
+  }, [state.musicStarted]);
+
+  return (
+    <audio
+      ref={audioRef}
+      src="/music/background.mp3"
+      loop
+    />
+  );
+};
 
 /**
  * App.tsx - The root component of our application
@@ -31,26 +71,31 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
+const AppContent = () => (
+  <TooltipProvider>
+    <BackgroundMusic />
+    <Toaster />
+    <Sonner />
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/asset/:id" element={<AssetDetail />} />
+        <Route path="/how-it-works" element={<HowItWorksPage />} />
+        <Route path="/add-cow" element={<AddCow />} />
+        <Route path="/portfolio" element={<Portfolio />} />
+        <Route path="/farmer" element={<FarmerDashboard />} />
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </BrowserRouter>
+  </TooltipProvider>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AppProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter basename={import.meta.env.BASE_URL}>
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/marketplace" element={<Marketplace />} />
-            <Route path="/asset/:id" element={<AssetDetail />} />
-            <Route path="/how-it-works" element={<HowItWorksPage />} />
-            <Route path="/add-cow" element={<AddCow />} />
-            <Route path="/portfolio" element={<Portfolio />} />
-            <Route path="/farmer" element={<FarmerDashboard />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AppContent />
     </AppProvider>
   </QueryClientProvider>
 );
