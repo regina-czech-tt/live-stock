@@ -33,6 +33,7 @@ interface AppState {
   reviews: FarmerReview[];   // Farmer reviews from investors
   currentUserId: string;     // Temporary - will be real auth later
   favorites: string[];       // Array of asset IDs that user has favorited
+musicStarted: boolean;     // Whether background music has been started
 }
 
 // ==========================================
@@ -55,7 +56,8 @@ type Action =
   | { type: 'TOGGLE_FAVORITE'; payload: { assetId: string } }
   | { type: 'UPDATE_FARMER'; payload: { farmerId: string; updates: Partial<Farmer> } }
   | { type: 'ADD_REVIEW'; payload: { farmerId: string; assetId: string; rating: number; comment?: string } }
-  | { type: 'LOAD_STATE'; payload: AppState };
+  | { type: 'LOAD_STATE'; payload: AppState }
+  | { type: 'START_MUSIC' };
 
 // ==========================================
 // 3. CREATE THE REDUCER
@@ -259,6 +261,13 @@ function appReducer(state: AppState, action: Action): AppState {
         farmers: action.payload.farmers || initialState.farmers,
       };
 
+    // Start background music
+    case 'START_MUSIC':
+      return {
+        ...state,
+        musicStarted: true,
+      };
+
     default:
       return state;
   }
@@ -288,6 +297,7 @@ interface AppContextType {
   updateFarmer: (farmerId: string, updates: Partial<Farmer>) => void;
   addReview: (farmerId: string, assetId: string, rating: number, comment?: string) => void;
   hasReviewed: (assetId: string) => boolean;
+  startMusic: () => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
@@ -311,6 +321,7 @@ const initialState: AppState = {
   reviews: [],             // No reviews initially
   currentUserId: 'user-1', // Hardcoded for now
   favorites: [],           // No favorites initially
+  musicStarted: false,     // Music not started by default
 };
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -403,8 +414,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     );
   };
 
+  // Start background music
+  const startMusic = () => {
+    dispatch({ type: 'START_MUSIC' });
+  };
+
   return (
-    <AppContext.Provider value={{ state, addAsset, updateAsset, buyShares, sellAsset, markDeceased, toggleFavorite, isFavorite, getFarmer, getAsset, updateFarmer, addReview, hasReviewed }}>
+    <AppContext.Provider value={{ state, addAsset, updateAsset, buyShares, sellAsset, markDeceased, toggleFavorite, isFavorite, getFarmer, getAsset, updateFarmer, addReview, hasReviewed, startMusic }}>
       {children}
     </AppContext.Provider>
   );

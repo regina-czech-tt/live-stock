@@ -2,10 +2,18 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Heart, Sprout, Users, Milk, RotateCcw } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Layout } from "@/components/Layout";
+import { useApp } from "@/context/AppContext";
 
 const Home = () => {
+  const { startMusic } = useApp();
+  const navigate = useNavigate();
+
+  const handleBrowseCows = () => {
+    startMusic();
+    navigate("/marketplace");
+  };
   // Temporary reset function for testing
   const handleReset = () => {
     if (confirm("This will reset all data to defaults. Are you sure?")) {
@@ -33,11 +41,9 @@ const Home = () => {
             one cow at a time.
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Button size="lg" className="gap-2" asChild>
-              <Link to="/marketplace">
-                <Milk className="w-4 h-4" />
-                Browse Cows
-              </Link>
+            <Button size="lg" className="gap-2" onClick={handleBrowseCows}>
+              <Milk className="w-4 h-4" />
+              Browse Cows
             </Button>
             <Button size="lg" variant="outline" asChild>
               <Link to="/how-it-works">
